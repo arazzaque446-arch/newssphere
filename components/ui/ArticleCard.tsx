@@ -21,7 +21,8 @@ export function ArticleCard({
   variant = "default",
   priority = false,
 }: ArticleCardProps) {
-  const href = `/article/${article.id}`;
+  // Use slug if available, otherwise fall back to article id
+  const href = `/news/${article.slug ?? article.id}`;
 
   if (variant === "horizontal") {
     return (
@@ -38,13 +39,16 @@ export function ArticleCard({
             sizes="112px"
           />
         </div>
+
         <div className="flex min-w-0 flex-1 flex-col justify-center">
           <span className="mb-1 text-xs font-semibold uppercase tracking-wide text-accent">
             {article.category}
           </span>
+
           <h3 className="line-clamp-2 font-serif text-sm font-semibold leading-snug text-foreground group-hover:text-accent">
             {article.title}
           </h3>
+
           <span className="mt-1 text-xs text-muted">
             {formatDate(article.publishedAt)}
           </span>
@@ -59,10 +63,12 @@ export function ArticleCard({
         <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">
           •
         </span>
+
         <div>
           <h3 className="line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
             {article.title}
           </h3>
+
           <span className="mt-1 block text-xs text-muted">
             {article.readTime} min read
           </span>
@@ -81,23 +87,28 @@ export function ArticleCard({
           src={article.imageUrl}
           alt={article.imageAlt}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={priority}
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width:768px)100vw,(max-width:1200px)50vw,33vw"
         />
+
         <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-white">
           {article.category}
         </span>
       </div>
+
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 font-serif text-lg font-bold leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h3 className="line-clamp-2 font-serif text-lg font-bold leading-snug text-foreground group-hover:text-accent">
           {article.title}
         </h3>
+
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
           {article.excerpt}
         </p>
+
         <div className="mt-auto flex items-center justify-between pt-4 text-xs text-muted">
           <span>{article.author}</span>
+
           <span>
             {formatDate(article.publishedAt)} · {article.readTime} min
           </span>

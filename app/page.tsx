@@ -7,19 +7,36 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { LatestNewsGrid } from "@/components/home/LatestNewsGrid";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { TrendingSidebar } from "@/components/home/TrendingSidebar";
+
 import {
-  categoryCards,
-  getFeaturedArticle,
   getHeroArticles,
+  getFeaturedArticle,
   getLatestArticles,
   getTrendingArticles,
-} from "@/data/news";
+} from "@/lib/articles";
 
-export default function Home() {
-  const heroArticles = getHeroArticles();
-  const featuredArticle = getFeaturedArticle();
-  const latestArticles = getLatestArticles(6);
-  const trendingArticles = getTrendingArticles(5);
+import { categoryCards } from "@/data/news";
+
+export default async function Home() {
+  const heroArticles = await getHeroArticles();
+  const featuredArticle = await getFeaturedArticle();
+  console.log("FEATURED ARTICLE:", featuredArticle);
+  const latestArticles = await getLatestArticles(6);
+  const trendingArticles = await getTrendingArticles(5);
+
+  if (!featuredArticle) {
+    return (
+      <>
+        <Header />
+        <main className="mx-auto max-w-7xl px-4 py-20">
+          <h1 className="text-3xl font-bold">
+            No published articles found.
+          </h1>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -28,6 +45,7 @@ export default function Home() {
 
       <main className="flex-1 space-y-12 pb-8 md:space-y-16">
         <HeroSection articles={heroArticles} />
+
         <FeaturedArticle article={featuredArticle} />
 
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_320px]">
@@ -36,6 +54,7 @@ export default function Home() {
         </div>
 
         <CategoryCards categories={categoryCards} />
+
         <NewsletterSection />
       </main>
 

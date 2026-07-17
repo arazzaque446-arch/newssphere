@@ -11,7 +11,7 @@ export function FeaturedArticle({ article }: FeaturedArticleProps) {
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6">
       <Link
-        href={`/article/${article.id}`}
+       href={`/news/${article.slug}`}
         className="group grid overflow-hidden rounded-2xl border border-border bg-surface md:grid-cols-2"
       >
         <div className="relative aspect-[16/10] md:aspect-auto md:min-h-[360px]">
