@@ -16,10 +16,9 @@ export default async function CategoryPage({
   const { slug } = await params;
 
   const category =
-    slug.charAt(0).toUpperCase() +
-    slug.slice(1);
+    slug.charAt(0).toUpperCase() + slug.slice(1);
 
-  const { data: articles } = await supabase
+  const { data: articles, error } = await supabase
     .from("articles")
     .select("*")
     .eq("published", true)
@@ -28,13 +27,17 @@ export default async function CategoryPage({
       ascending: false,
     });
 
+  if (error) {
+    console.error(error);
+    notFound();
+  }
+
   if (!articles || articles.length === 0) {
     notFound();
   }
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
-
       <h1 className="mb-2 text-5xl font-bold">
         {category}
       </h1>
@@ -44,28 +47,25 @@ export default async function CategoryPage({
       </p>
 
       <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-
         {articles.map((article) => (
-
           <Link
             key={article.id}
-            href={`/news/${article.slug}`}
+            href={`/news/${article.slug ?? article.id}`}
             className="overflow-hidden rounded-3xl bg-white shadow transition hover:-translate-y-1 hover:shadow-2xl"
           >
-
             <div className="relative h-60">
-
               <Image
-                src={article.image_url}
-                alt={article.title}
+                src={
+                  article.image_url ||
+                  "https://images.unsplash.com/photo-1504711434969-e33886168f5c"
+                }
+                alt={article.title || "News"}
                 fill
                 className="object-cover"
               />
-
             </div>
 
             <div className="space-y-3 p-6">
-
               <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-600">
                 {article.category}
               </span>
@@ -79,7 +79,6 @@ export default async function CategoryPage({
               </p>
 
               <div className="flex justify-between text-sm text-slate-500">
-
                 <span>{article.author}</span>
 
                 <span>
@@ -87,17 +86,11 @@ export default async function CategoryPage({
                     article.created_at
                   ).toLocaleDateString()}
                 </span>
-
               </div>
-
             </div>
-
           </Link>
-
         ))}
-
       </div>
-
     </main>
   );
 }
