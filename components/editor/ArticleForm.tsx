@@ -49,7 +49,7 @@ export default function ArticleForm({ action }: Props) {
         />
       </div>
 
-      {/* Rich Text */}
+      {/* Content */}
 
       <div>
         <label className="mb-2 block font-semibold">
@@ -68,7 +68,7 @@ export default function ArticleForm({ action }: Props) {
         />
       </div>
 
-      {/* Image */}
+      {/* Featured Image */}
 
       <div>
         <label className="mb-2 block font-semibold">
@@ -90,15 +90,15 @@ export default function ArticleForm({ action }: Props) {
           required
           className="w-full rounded-xl border p-4"
         >
-          <option>Technology</option>
-          <option>Politics</option>
-          <option>Business</option>
-          <option>Sports</option>
-          <option>Health</option>
-          <option>Entertainment</option>
-          <option>India</option>
-          <option>World</option>
-          <option>Local</option>
+          <option value="Technology">Technology</option>
+          <option value="Politics">Politics</option>
+          <option value="Business">Business</option>
+          <option value="Sports">Sports</option>
+          <option value="Health">Health</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="India">India</option>
+          <option value="World">World</option>
+          <option value="Local">Local</option>
         </select>
       </div>
 
@@ -132,7 +132,67 @@ export default function ArticleForm({ action }: Props) {
         />
       </div>
 
+      {/* Publishing Options */}
+
+      <div className="rounded-2xl border bg-slate-50 p-6">
+
+        <h2 className="mb-4 text-xl font-bold">
+          Publishing Options
+        </h2>
+
+        <div className="space-y-4">
+
+          <label className="flex items-center gap-3">
+
+            <input
+              type="checkbox"
+              name="published"
+              defaultChecked
+              className="h-5 w-5"
+            />
+
+            <span className="font-medium">
+              Publish Immediately
+            </span>
+
+          </label>
+
+          <label className="flex items-center gap-3">
+
+            <input
+              type="checkbox"
+              name="featured"
+              className="h-5 w-5"
+            />
+
+            <span className="font-medium">
+              Featured Article
+            </span>
+
+          </label>
+
+          <label className="flex items-center gap-3">
+
+            <input
+              type="checkbox"
+              name="breaking"
+              className="h-5 w-5"
+            />
+
+            <span className="font-medium">
+              Breaking News
+            </span>
+
+          </label>
+
+        </div>
+
+      </div>
+
+      {/* Publish Button */}
+
       <PublishButton />
+
     </form>
   );
 }
