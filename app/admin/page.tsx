@@ -14,9 +14,15 @@ import QuickActions from "@/components/dashboard/QuickActions";
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  const { data: articles = [] } = await supabase
+  const { data, error } = await supabase
     .from("articles")
     .select("*");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const articles = data ?? [];
 
   const totalArticles = articles.length;
 
@@ -44,10 +50,7 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
 
-      {/* Page Title */}
-
       <div>
-
         <h1 className="text-4xl font-bold text-slate-900">
           Dashboard
         </h1>
@@ -55,13 +58,9 @@ export default async function AdminDashboard() {
         <p className="mt-2 text-slate-500">
           Welcome to NewsSphere CMS
         </p>
-
       </div>
 
-      {/* Statistics */}
-
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
         <DashboardStat
           title="Articles"
           value={totalArticles}
@@ -88,59 +87,38 @@ export default async function AdminDashboard() {
           icon={Eye}
           color="text-purple-600"
         />
-
       </div>
-      {/* Analytics */}
 
-<AnalyticsCards articles={articles} />
-
-      {/* Main Grid */}
+      <AnalyticsCards articles={articles} />
 
       <div className="grid gap-8 lg:grid-cols-3">
-
-        {/* Recent Articles */}
 
         <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm">
 
           <div className="border-b p-6">
-
             <h2 className="text-xl font-bold">
               Recent Articles
             </h2>
-
           </div>
 
           {recentArticles.length === 0 ? (
-
             <div className="p-10 text-center text-slate-500">
-
               No articles available.
-
             </div>
-
           ) : (
-
             recentArticles.map((article) => (
-
               <div
                 key={article.id}
                 className="flex items-center justify-between border-b p-6 last:border-none"
               >
-
                 <div>
-
                   <h3 className="font-semibold">
-
                     {article.title}
-
                   </h3>
 
                   <p className="mt-1 text-sm text-slate-500">
-
                     {article.category}
-
                   </p>
-
                 </div>
 
                 <span
@@ -152,21 +130,14 @@ export default async function AdminDashboard() {
                 >
                   {article.published ? "Published" : "Draft"}
                 </span>
-
               </div>
-
             ))
-
           )}
-
         </div>
-
-        {/* Right Side */}
 
         <QuickActions />
 
       </div>
-
     </div>
   );
 }
