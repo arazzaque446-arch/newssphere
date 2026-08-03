@@ -101,6 +101,30 @@ export default function ArticleForm({ action }: Props) {
           <option value="Local">Local</option>
         </select>
       </div>
+      {/* Tags */}
+
+<div>
+
+  <label className="mb-2 block font-semibold">
+
+    Tags
+
+  </label>
+
+  <input
+    type="text"
+    name="tags"
+    placeholder="Politics, Assam, Flood, India"
+    className="w-full rounded-xl border p-4"
+  />
+
+  <p className="mt-2 text-sm text-slate-500">
+
+    Separate tags using commas.
+
+  </p>
+
+</div>
 
       {/* Author */}
 
@@ -131,68 +155,188 @@ export default function ArticleForm({ action }: Props) {
           className="w-full rounded-xl border p-4"
         />
       </div>
+      {/* SEO */}
 
-      {/* Publishing Options */}
+<div className="rounded-2xl border bg-slate-50 p-6">
 
-      <div className="rounded-2xl border bg-slate-50 p-6">
+  <h2 className="mb-5 text-xl font-bold">
 
-        <h2 className="mb-4 text-xl font-bold">
-          Publishing Options
-        </h2>
+    SEO
 
-        <div className="space-y-4">
+  </h2>
 
-          <label className="flex items-center gap-3">
+  <div className="space-y-5">
 
-            <input
-              type="checkbox"
-              name="published"
-              defaultChecked
-              className="h-5 w-5"
-            />
+    <div>
 
-            <span className="font-medium">
-              Publish Immediately
-            </span>
+      <label className="mb-2 block font-semibold">
 
-          </label>
+        SEO Title
 
-          <label className="flex items-center gap-3">
+      </label>
 
-            <input
-              type="checkbox"
-              name="featured"
-              className="h-5 w-5"
-            />
+      <input
+        type="text"
+        name="seoTitle"
+        className="w-full rounded-xl border p-4"
+      />
 
-            <span className="font-medium">
-              Featured Article
-            </span>
+    </div>
 
-          </label>
+    <div>
 
-          <label className="flex items-center gap-3">
+      <label className="mb-2 block font-semibold">
 
-            <input
-              type="checkbox"
-              name="breaking"
-              className="h-5 w-5"
-            />
+        SEO Description
 
-            <span className="font-medium">
-              Breaking News
-            </span>
+      </label>
 
-          </label>
+      <textarea
+        rows={3}
+        name="seoDescription"
+        className="w-full rounded-xl border p-4"
+      />
 
-        </div>
+    </div>
 
-      </div>
+  </div>
 
-      {/* Publish Button */}
+</div>
 
-      <PublishButton />
+      {/* SEO */}
 
-    </form>
-  );
+<div className="rounded-2xl border bg-slate-50 p-6">
+
+  <h2 className="mb-5 text-xl font-bold">
+    SEO
+  </h2>
+
+  <div className="space-y-5">
+
+    <div>
+
+      <label className="mb-2 block font-semibold">
+        SEO Title
+      </label>
+
+      <input
+        type="text"
+        name="seoTitle"
+        className="w-full rounded-xl border p-4"
+      />
+
+    </div>
+
+    <div>
+
+      <label className="mb-2 block font-semibold">
+        SEO Description
+      </label>
+
+      <textarea
+        rows={3}
+        name="seoDescription"
+        className="w-full rounded-xl border p-4"
+      />
+
+    </div>
+
+  </div>
+
+</div>
+
+{/* Publishing Options */}
+
+<div className="rounded-2xl border bg-slate-50 p-6">
+
+  <h2 className="mb-4 text-xl font-bold">
+    Publishing Options
+  </h2>
+
+  <div className="space-y-4">
+
+    <label className="flex items-center gap-3">
+
+      <input
+        type="checkbox"
+        name="published"
+        defaultChecked
+        className="h-5 w-5"
+      />
+
+      <span className="font-medium">
+        Publish Immediately
+      </span>
+
+    </label>
+
+    <label className="flex items-center gap-3">
+
+      <input
+        type="checkbox"
+        name="featured"
+        className="h-5 w-5"
+      />
+
+      <span className="font-medium">
+        Featured Article
+      </span>
+
+    </label>
+
+    <label className="flex items-center gap-3">
+
+      <input
+        type="checkbox"
+        name="breaking"
+        className="h-5 w-5"
+      />
+
+      <span className="font-medium">
+        Breaking News
+      </span>
+
+    </label>
+
+  </div>
+
+</div>
+
+{/* Reading Time */}
+
+<div className="rounded-xl bg-blue-50 p-5">
+
+  <h2 className="font-bold">
+    Reading Time
+  </h2>
+
+  <p className="mt-2 text-slate-600">
+    Reading time will be calculated automatically after publishing.
+  </p>
+
+</div>
+<div className="rounded-2xl border bg-white p-6">
+
+  <h2 className="mb-5 text-xl font-bold">
+    Schedule Publication
+  </h2>
+
+  <input
+    type="datetime-local"
+    name="publishAt"
+    className="w-full rounded-xl border p-4"
+  />
+
+  <p className="mt-2 text-sm text-slate-500">
+    Leave empty to publish immediately.
+  </p>
+
+</div>
+
+{/* Publish Button */}
+
+<PublishButton />
+
+</form>
+);
 }

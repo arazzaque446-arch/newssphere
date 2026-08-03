@@ -1,62 +1,172 @@
-import { supabase } from "@/lib/supabase";
+import {
+  Newspaper,
+  FileText,
+  Eye,
+  Sparkles,
+} from "lucide-react";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import StatCard from "@/components/dashboard/StatCard";
-import RecentArticles from "@/components/dashboard/RecentArticles";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function AdminPage() {
-  const { data: articles } = await supabase
+import DashboardStat from "@/components/dashboard/DashboardStat";
+import AnalyticsCards from "@/components/dashboard/AnalyticsCards";
+import QuickActions from "@/components/dashboard/QuickActions";
+
+export default async function AdminDashboard() {
+  const supabase = await createClient();
+
+  const { data: articles = [] } = await supabase
     .from("articles")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*");
 
-  const total = articles?.length ?? 0;
+  const totalArticles = articles.length;
 
-  const published =
-    articles?.filter((a) => a.published).length ?? 0;
+  const publishedArticles = articles.filter(
+    (a) => a.published
+  ).length;
 
-  const featured =
-    articles?.filter((a) => a.featured).length ?? 0;
+  const draftArticles = articles.filter(
+    (a) => !a.published
+  ).length;
 
-  const categories = new Set(
-    articles?.map((a) => a.category)
-  ).size;
+  const totalViews = articles.reduce(
+    (sum, article) => sum + (article.views || 0),
+    0
+  );
+
+  const recentArticles = [...articles]
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() -
+        new Date(a.created_at).getTime()
+    )
+    .slice(0, 5);
 
   return (
-    <DashboardLayout>
+    <div className="space-y-8">
+
+      {/* Page Title */}
+
+      <div>
+
+        <h1 className="text-4xl font-bold text-slate-900">
+          Dashboard
+        </h1>
+
+        <p className="mt-2 text-slate-500">
+          Welcome to NewsSphere CMS
+        </p>
+
+      </div>
+
+      {/* Statistics */}
+
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
+
+        <DashboardStat
           title="Articles"
-          value={total}
-          icon="file"
-          color="bg-blue-600"
+          value={totalArticles}
+          icon={Newspaper}
         />
 
-        <StatCard
+        <DashboardStat
           title="Published"
-          value={published}
-          icon="news"
-          color="bg-green-600"
+          value={publishedArticles}
+          icon={Sparkles}
+          color="text-green-600"
         />
 
-        <StatCard
-          title="Featured"
-          value={featured}
-          icon="star"
-          color="bg-yellow-500"
+        <DashboardStat
+          title="Drafts"
+          value={draftArticles}
+          icon={FileText}
+          color="text-orange-600"
         />
 
-        <StatCard
-          title="Categories"
-          value={categories}
-          icon="folder"
-          color="bg-purple-600"
+        <DashboardStat
+          title="Views"
+          value={totalViews}
+          icon={Eye}
+          color="text-purple-600"
         />
+
+      </div>
+      {/* Analytics */}
+
+<AnalyticsCards articles={articles} />
+
+      {/* Main Grid */}
+
+      <div className="grid gap-8 lg:grid-cols-3">
+
+        {/* Recent Articles */}
+
+        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+          <div className="border-b p-6">
+
+            <h2 className="text-xl font-bold">
+              Recent Articles
+            </h2>
+
+          </div>
+
+          {recentArticles.length === 0 ? (
+
+            <div className="p-10 text-center text-slate-500">
+
+              No articles available.
+
+            </div>
+
+          ) : (
+
+            recentArticles.map((article) => (
+
+              <div
+                key={article.id}
+                className="flex items-center justify-between border-b p-6 last:border-none"
+              >
+
+                <div>
+
+                  <h3 className="font-semibold">
+
+                    {article.title}
+
+                  </h3>
+
+                  <p className="mt-1 text-sm text-slate-500">
+
+                    {article.category}
+
+                  </p>
+
+                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    article.published
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {article.published ? "Published" : "Draft"}
+                </span>
+
+              </div>
+
+            ))
+
+          )}
+
+        </div>
+
+        {/* Right Side */}
+
+        <QuickActions />
+
       </div>
 
-      <div className="mt-10">
-        <RecentArticles articles={articles ?? []} />
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

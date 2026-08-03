@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint",
+  "audit": "node scripts/audit.js"
+},
   "dependencies": {
+    "@google/genai": "^2.15.0",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.2",
     "@tiptap/extension-image": "^3.27.4",
@@ -17,11 +19,15 @@
     "@tiptap/pm": "^3.27.4",
     "@tiptap/react": "^3.27.4",
     "@tiptap/starter-kit": "^3.27.4",
+    "fast-xml-parser": "^5.10.1",
     "framer-motion": "^12.42.2",
+    "groq-sdk": "^1.5.0",
     "lucide-react": "^1.24.0",
     "next": "16.2.10",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "rss-parser": "^3.13.0",
+    "slugify": "^1.6.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

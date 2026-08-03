@@ -1,193 +1,235 @@
-import Image from "next/image";
+import Link from "next/link";
+import ArticleFilters from "@/components/dashboard/ArticleFilters";
+import {
+  Newspaper,
+  Eye,
+  FileText,
+  Plus,
+} from "lucide-react";
+
 import Link from "next/link";
 
-import { supabase } from "@/lib/supabase";
-import { deleteArticle } from "../actions";
+import {
+  Newspaper,
+  Eye,
+  FileText,
+  Plus,
+} from "lucide-react";
+
+import { createClient } from "@/lib/supabase/server";
+
+import DashboardStat from "@/components/dashboard/DashboardStat";
+import ArticlesTable from "@/components/dashboard/ArticlesTable";
+
+import { Article } from "@/types/article";
 
 export default async function ArticlesPage() {
-  const { data: articles } = await supabase
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
     .from("articles")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const articles = (data ?? []) as Article[];
+
+  const totalArticles = articles.length;
+
+  const publishedArticles = articles.filter(
+    (a) => a.published
+  ).length;
+
+  const draftArticles =
+    totalArticles - publishedArticles;
+
+  const totalViews = articles.reduce(
+    (sum, article) => sum + (article.views || 0),
+    0
+  );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 p-8">
+    <main className="min-h-screen bg-slate-100">
 
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl p-8">
 
         {/* Header */}
 
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
           <div>
 
             <h1 className="text-5xl font-bold text-slate-900">
-              📰 All Articles
+
+              Articles
+
             </h1>
 
-            <p className="mt-2 text-slate-500">
-              Manage every article published on NewsSphere.
+            <p className="mt-3 text-slate-500">
+
+              Manage all published and draft
+              articles from one place.
+
             </p>
 
           </div>
 
           <Link
             href="/admin/new"
-            className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 px-7 py-4 font-semibold text-white shadow-lg transition hover:scale-105"
+            className="inline-flex items-center gap-3 rounded-xl bg-blue-600 px-6 py-4 font-semibold text-white shadow-lg transition hover:bg-blue-700"
           >
-            ➕ New Article
+
+            <Plus size={20} />
+
+            New Article
+
           </Link>
 
         </div>
 
-        {/* Table */}
+        {/* Statistics */}
 
-        <div className="overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="mb-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-          <table className="w-full">
+          <DashboardStat
+            title="Articles"
+            value={totalArticles}
+            icon={Newspaper}
+          />
 
-            <thead className="bg-slate-900 text-white">
+          <DashboardStat
+            title="Published"
+            value={publishedArticles}
+            icon={FileText}
+            color="text-green-600"
+          />
 
-              <tr>
+          <DashboardStat
+            title="Drafts"
+            value={draftArticles}
+            icon={FileText}
+            color="text-orange-600"
+          />
 
-                <th className="p-5 text-left">Image</th>
+          <DashboardStat
+            title="Views"
+            value={totalViews}
+            icon={Eye}
+            color="text-purple-600"
+          />
 
-                <th className="text-left">Title</th>
+        </div>
+<ArticlesTable articles={articles} />
+                {/* Footer */}
 
-                <th className="text-left">Category</th>
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-white px-6 py-5 md:flex-row">
 
-                <th className="text-left">Status</th>
+          <div className="text-sm text-slate-500">
 
-                <th className="text-center">Actions</th>
+            Showing
 
-              </tr>
+            <span className="mx-2 font-semibold text-slate-900">
 
-            </thead>
+              {articles.length}
 
-            <tbody>
+            </span>
 
-              {articles?.length ? (
+            article{articles.length !== 1 ? "s" : ""}
 
-                articles.map((article) => (
+          </div>
 
-                  <tr
-                    key={article.id}
-                    className="border-b transition hover:bg-slate-50"
-                  >
+          <div className="flex items-center gap-3">
 
-                    {/* Image */}
+            <Link
+              href="/admin/new"
+              className="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white transition hover:bg-blue-700"
+            >
+              + New Article
+            </Link>
 
-                    <td className="p-4">
-
-                      <Image
-                        src={article.image_url}
-                        alt={article.title}
-                        width={130}
-                        height={80}
-                        className="rounded-xl object-cover shadow"
-                      />
-
-                    </td>
-
-                    {/* Title */}
-
-                    <td className="font-semibold text-slate-800">
-
-                      {article.title}
-
-                    </td>
-
-                    {/* Category */}
-
-                    <td>
-
-                      <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-
-                        {article.category}
-
-                      </span>
-
-                    </td>
-
-                    {/* Status */}
-
-                    <td>
-
-                      {article.published ? (
-
-                        <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
-
-                          Published
-
-                        </span>
-
-                      ) : (
-
-                        <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-semibold text-yellow-700">
-
-                          Draft
-
-                        </span>
-
-                      )}
-
-                    </td>
-
-                    {/* Actions */}
-
-                    <td>
-
-                      <div className="flex justify-center gap-3">
-
-                        <Link
-                          href={`/admin/edit/${article.id}`}
-                          className="rounded-lg bg-blue-600 px-5 py-2 text-white transition hover:bg-blue-700"
-                        >
-                          ✏ Edit
-                        </Link>
-
-                        <form action={deleteArticle.bind(null, article.id)}>
-
-                          <button
-                            type="submit"
-                            className="rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-red-700"
-                          >
-                            🗑 Delete
-                          </button>
-
-                        </form>
-
-                      </div>
-
-                    </td>
-
-                  </tr>
-
-                ))
-
-              ) : (
-
-                <tr>
-
-                  <td
-                    colSpan={5}
-                    className="py-20 text-center text-xl text-slate-500"
-                  >
-                    No articles found.
-                  </td>
-
-                </tr>
-
-              )}
-
-            </tbody>
-
-          </table>
+          </div>
 
         </div>
 
-      </div>
+        {/* Information Cards */}
 
-    </main>
-  );
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+
+          <h2 className="mb-4 text-lg font-bold">
+
+            Published
+
+          </h2>
+
+          <p className="text-4xl font-bold text-green-600">
+
+            {publishedArticles}
+
+          </p>
+
+          <p className="mt-2 text-sm text-slate-500">
+
+            Articles currently visible on NewsSphere.
+
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+
+          <h2 className="mb-4 text-lg font-bold">
+
+            Drafts
+
+          </h2>
+
+          <p className="text-4xl font-bold text-orange-600">
+
+            {draftArticles}
+
+          </p>
+
+          <p className="mt-2 text-sm text-slate-500">
+
+            Draft articles waiting for publication.
+
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+
+          <h2 className="mb-4 text-lg font-bold">
+
+            Total Views
+
+          </h2>
+
+          <p className="text-4xl font-bold text-purple-600">
+
+            {totalViews}
+
+          </p>
+
+          <p className="mt-2 text-sm text-slate-500">
+
+  Combined views across all published articles.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</main>
+);
 }

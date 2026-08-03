@@ -94,13 +94,32 @@ export async function createArticle(formData: FormData) {
 
     views: 0,
 
-    tags: [],
+    tags: String(formData.get("tags") || "")
+  .split(",")
+  .map((tag) => tag.trim())
+  .filter(Boolean),
 
-    seo_title: title,
+    seo_title:
+  String(formData.get("seoTitle")) || title,
 
-    seo_description: summary,
+seo_description:
+  String(formData.get("seoDescription")) || summary,
 
-    published_at: new Date().toISOString(),
+    read_time: Math.max(
+  1,
+  Math.ceil(
+    String(formData.get("content"))
+      .replace(/<[^>]+>/g, "")
+      .split(/\s+/).length / 200
+  )
+),
+
+published_at:
+  formData.get("publishAt")
+    ? new Date(
+        String(formData.get("publishAt"))
+      ).toISOString()
+    : new Date().toISOString(),
   };
 
   const { error } = await supabase
@@ -199,9 +218,25 @@ export async function updateArticle(
 
     breaking: formData.get("breaking") === "on",
 
-    seo_title: title,
+    seo_title:
+  String(formData.get("seoTitle")) || title,
 
-    seo_description: summary,
+seo_description:
+  String(formData.get("seoDescription")) || summary,
+
+tags: String(formData.get("tags") || "")
+  .split(",")
+  .map((tag) => tag.trim())
+  .filter(Boolean),
+
+read_time: Math.max(
+  1,
+  Math.ceil(
+    String(formData.get("content"))
+      .replace(/<[^>]+>/g, "")
+      .split(/\s+/).length / 200
+  )
+),
 
     updated_at: new Date().toISOString(),
   };
