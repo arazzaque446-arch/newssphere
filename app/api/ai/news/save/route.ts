@@ -15,46 +15,67 @@ export async function POST(req: NextRequest) {
   try {
     const article = await req.json();
 
-    // Clean AI-generated HTML before saving
     const cleanedContent = cleanArticle(article.content);
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("articles")
       .insert({
         title: article.title,
         slug: slugify(article.title),
+
         summary: article.summary,
+
         content: cleanedContent,
+
         category: article.category || "General",
+
         author: "NewsSphere AI",
+
         location: article.location || "India",
+
         image_url:
+          article.image_url ||
           "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
+
         source: "AI Generated",
+
         seo_title: article.seoTitle,
+
         seo_description: article.seoDescription,
+
         tags: article.tags || [],
-        published: false,
+
+        published: article.published ?? false,
+
         featured: false,
+
         breaking: false,
+
         views: 0,
-        published_at: new Date().toISOString(),
-      });
+
+        published_at: article.published
+          ? new Date().toISOString()
+          : null,
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      message: "Article saved successfully.",
+      article: data,
+      message: article.published
+        ? "Article published successfully."
+        : "Draft saved successfully.",
     });
-
   } catch (err) {
     console.error("Save Article Error:", err);
 
     return NextResponse.json(
       {
         success: false,
-        error: "Unable to save article.",
+        error: err instanceof Error ? err.message : "Unable to save article.",
       },
       {
         status: 500,

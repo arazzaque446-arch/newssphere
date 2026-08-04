@@ -183,12 +183,15 @@ https://example.com/news`}
     if (!article) return;
 
     try {
-      const res = await fetch("/api/ai/save", {
+      const res = await fetch("/api/ai/news/save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(article),
+        body: JSON.stringify({
+          ...article,
+          published: false,
+        }),
       });
 
       const data = await res.json();
@@ -209,6 +212,33 @@ https://example.com/news`}
 </button>
 
 <button
+  onClick={async () => {
+    if (!article) return;
+
+    try {
+      const res = await fetch("/api/ai/news/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...article,
+          published: true,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("✅ Article published successfully!");
+      } else {
+        alert(data.error || "❌ Failed to publish.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Unable to publish article.");
+    }
+  }}
   className="rounded-xl bg-indigo-600 px-8 py-4 font-semibold text-white hover:bg-indigo-700"
 >
   🚀 Publish

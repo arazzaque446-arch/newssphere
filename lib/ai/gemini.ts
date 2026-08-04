@@ -1,16 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.GEMINI_API_KEY;
-
-if (!apiKey) {
-  throw new Error("❌ GEMINI_API_KEY is missing in .env.local");
-}
-
-const ai = new GoogleGenAI({
-  apiKey,
-});
-
 export async function generateNews(topic: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured.");
+  }
+
+  const ai = new GoogleGenAI({
+    apiKey,
+  });
+
   const prompt = `
 You are an award-winning journalist working for NewsSphere.
 
@@ -50,20 +50,9 @@ summary:
 
 content:
 700-1200 words.
-Use paragraphs.
-No markdown.
 
 category:
-One of:
-Politics
-Business
-Technology
-Sports
-Health
-Entertainment
-India
-World
-Local
+Politics, Business, Technology, Sports, Health, Entertainment, India, World or Local.
 
 location:
 Main location.
@@ -72,37 +61,22 @@ seoTitle:
 SEO optimized title.
 
 seoDescription:
-SEO description under 160 characters.
+Under 160 characters.
 
 tags:
 5-8 tags.
 `;
 
-  try {
-    const response = await ai.models.generateContent({
-      // Stable alias
-      model: "gemini-flash-latest",
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest",
+    contents: prompt,
+  });
 
-      contents: prompt,
-    });
+  const text = response.text;
 
-    const text = response.text;
-
-    if (!text) {
-      throw new Error("Gemini returned an empty response.");
-    }
-
-    console.log("\n========== GEMINI RESPONSE ==========\n");
-    console.log(text);
-    console.log("\n=====================================\n");
-
-    return text.trim();
-  } catch (err: any) {
-    console.error("Gemini Error:", err);
-
-    throw new Error(
-      err?.message ||
-        "Gemini generation failed."
-    );
+  if (!text) {
+    throw new Error("Gemini returned an empty response.");
   }
+
+  return text.trim();
 }
