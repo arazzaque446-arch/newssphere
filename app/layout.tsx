@@ -19,9 +19,90 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "NewsSphere — Truth. First.",
+  metadataBase: new URL("https://newssphere-beta.vercel.app"),
+
+  title: {
+    default: "NewsSphere — Truth. First.",
+    template: "%s | NewsSphere",
+  },
+
   description:
-    "India's premium news portal. Breaking news, in-depth analysis, and trusted journalism from local stories to global events.",
+    "Breaking news, in-depth analysis, and trusted journalism from India and around the world.",
+
+  applicationName: "NewsSphere",
+
+  keywords: [
+    "NewsSphere",
+    "news",
+    "breaking news",
+    "India news",
+    "world news",
+    "technology news",
+    "business news",
+    "sports news",
+    "health news",
+    "politics news",
+  ],
+
+  authors: [
+    {
+      name: "NewsSphere",
+    },
+  ],
+
+  creator: "NewsSphere",
+  publisher: "NewsSphere",
+
+  verification: {
+    google: "AO13UfgsgUwrPtpIvdH1Csm-GkrmLJ0UEb2N7W5SgRI",
+  },
+
+  icons: {
+    icon: [
+      {
+        url: "/favicon.ico",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+
+  manifest: "/site.webmanifest",
+
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    siteName: "NewsSphere",
+    title: "NewsSphere — Truth. First.",
+    description:
+      "Breaking news, in-depth analysis, and trusted journalism from India and around the world.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "NewsSphere — Truth. First.",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "NewsSphere — Truth. First.",
+    description:
+      "Breaking news, in-depth analysis, and trusted journalism.",
+    images: ["/og-image.jpg"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -35,9 +116,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable}`}
     >
-      <body className="min-h-screen bg-background text-foreground antialiased">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
