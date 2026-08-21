@@ -3,7 +3,6 @@ import { runResearchAgent } from "@/lib/agents/research";
 import { runFactCheckAgent } from "@/lib/agents/factCheck";
 import { runSEOAgent } from "@/lib/agents/seo";
 import { runEditorAgent } from "@/lib/agents/editor";
-import { runPublisher } from "@/lib/agents/publisher";
 
 export interface PipelineResult {
   success: boolean;
@@ -15,7 +14,6 @@ export interface PipelineResult {
     factCheck: unknown;
     seo: unknown;
     editor: unknown;
-    publisher: unknown;
   };
   error?: string;
 }
@@ -36,7 +34,6 @@ export async function runAgentPipeline(): Promise<PipelineResult> {
     factCheck: null,
     seo: null,
     editor: null,
-    publisher: null,
   };
 
   try {
@@ -46,13 +43,11 @@ export async function runAgentPipeline(): Promise<PipelineResult> {
      *
      * Finds/imports candidate news stories.
      */
-
     console.log("------------------------------------------");
     console.log("STAGE 1: RSS SCOUT");
     console.log("------------------------------------------");
 
     stages.rssScout = await runRSSScout();
-
     console.log("RSS Scout result:", stages.rssScout);
 
     /*
@@ -61,13 +56,11 @@ export async function runAgentPipeline(): Promise<PipelineResult> {
      *
      * Rewrites/enriches pending candidates.
      */
-
     console.log("------------------------------------------");
     console.log("STAGE 2: RESEARCH");
     console.log("------------------------------------------");
 
     stages.research = await runResearchAgent();
-
     console.log("Research result:", stages.research);
 
     /*
@@ -76,13 +69,11 @@ export async function runAgentPipeline(): Promise<PipelineResult> {
      *
      * Checks researched candidates.
      */
-
     console.log("------------------------------------------");
     console.log("STAGE 3: FACT CHECK");
     console.log("------------------------------------------");
 
     stages.factCheck = await runFactCheckAgent();
-
     console.log("Fact Check result:", stages.factCheck);
 
     /*
@@ -91,13 +82,11 @@ export async function runAgentPipeline(): Promise<PipelineResult> {
      *
      * Generates SEO metadata.
      */
-
     console.log("------------------------------------------");
     console.log("STAGE 4: SEO");
     console.log("------------------------------------------");
 
     stages.seo = await runSEOAgent();
-
     console.log("SEO result:", stages.seo);
 
     /*
@@ -105,34 +94,14 @@ export async function runAgentPipeline(): Promise<PipelineResult> {
      * EDITOR
      *
      * Scores and prepares candidates for review.
+     * PIPELINE HALTS HERE. Human approval required to publish.
      */
-
     console.log("------------------------------------------");
     console.log("STAGE 5: EDITOR");
     console.log("------------------------------------------");
 
     stages.editor = await runEditorAgent();
-
     console.log("Editor result:", stages.editor);
-
-    /*
-     * STAGE 6
-     * PUBLISHER
-     *
-     * Final automated validation.
-     *
-     * IMPORTANT:
-     * Publisher must NEVER publish directly.
-     * Human approval remains the final gate.
-     */
-
-    console.log("------------------------------------------");
-    console.log("STAGE 6: PUBLISHER");
-    console.log("------------------------------------------");
-
-    stages.publisher = await runPublisher();
-
-    console.log("Publisher result:", stages.publisher);
 
     const finishedAt = new Date().toISOString();
 

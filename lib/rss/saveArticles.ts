@@ -19,12 +19,10 @@ function cleanText(value: unknown): string {
   return String(value).trim();
 }
 
-// 1. NEW: URL Normalizer to strip tracking parameters
 function normalizeUrl(url: string | null): string | null {
   if (!url) return null;
   try {
     const parsed = new URL(url);
-    // Strip common tracking tags that bypass duplicate checks
     const paramsToRemove = [
       'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 
       'at_medium', 'at_campaign', 'at_custom', 'at_pt'
@@ -72,13 +70,10 @@ export async function saveArticles(articles: any[]) {
         summary ||
         title;
 
-      // 2. Apply URL Normalization
       const rawLink = cleanText(article.link) || cleanText(article.url) || null;
       const link = normalizeUrl(rawLink);
-      
       const guid = cleanText(article.guid) || null;
 
-      // 3. Look for the corrected imageUrl property passed from fetchFeeds
       const imageUrl =
         cleanText(article.imageUrl) ||
         cleanText(article.image) ||
@@ -94,9 +89,7 @@ export async function saveArticles(articles: any[]) {
           ? new Date(article.published)
           : new Date();
 
-      // --------------------------------------------
-      // DUPLICATE CHECK
-      // --------------------------------------------
+      // Duplicate Checks
       let existing = null;
 
       if (guid) {
@@ -131,11 +124,7 @@ export async function saveArticles(articles: any[]) {
         continue;
       }
 
-      // --------------------------------------------
-      // GENERATE UNIQUE SLUG
-      // --------------------------------------------
       let slug = baseSlug;
-
       const { data: slugMatch } = await supabase
         .from("articles")
         .select("id")
@@ -146,9 +135,7 @@ export async function saveArticles(articles: any[]) {
         slug = makeUniqueSlug(baseSlug, guid, index);
       }
 
-      // --------------------------------------------
-      // FINAL ARTICLE
-      // --------------------------------------------
+      // Format Article with published: false
       const formattedArticle = {
         guid,
         link,
@@ -160,7 +147,7 @@ export async function saveArticles(articles: any[]) {
         location: cleanText(article.location) || "Guwahati, Assam",
         author: cleanText(article.author) || "NewsSphere",
         source: cleanText(article.source) || "RSS",
-        published: true,
+        published: false, // Explicitly saved as draft (Manual approval required)
         featured: false,
         slug,
         seo_title: title,
