@@ -7,12 +7,7 @@ export async function GET() {
   /*
    * Do not publish advertising network
    * authorization records while ads are disabled.
-   *
-   * When NewsSphere receives its actual
-   * advertising publisher details, they
-   * can be added here.
    */
-
   if (!adsEnabled) {
     return new NextResponse(
       "# NewsSphere advertising is currently disabled\n",
@@ -26,10 +21,9 @@ export async function GET() {
     );
   }
 
+  // Official Google AdSense verification record
   const adsTxt = `
-# NewsSphere
-# Advertising authorization records will be added
-# after the advertising provider is activated.
+google.com, pub-1341900232780067, DIRECT, f08c47fec0942fa0
 `.trim();
 
   return new NextResponse(`${adsTxt}\n`, {
