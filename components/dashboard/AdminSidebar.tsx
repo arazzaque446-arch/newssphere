@@ -28,6 +28,11 @@ const menu = [
     icon: Newspaper,
   },
   {
+    title: "Review Queue",
+    href: "/admin/review",
+    icon: Shield,
+  },
+  {
     title: "AI Studio",
     href: "/admin/ai/news",
     icon: Sparkles,

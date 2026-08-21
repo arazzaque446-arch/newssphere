@@ -1,7 +1,5 @@
 import type { NextConfig } from "next";
 
-console.log("✅ next.config.ts loaded");
-
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -11,15 +9,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "th-i.thgim.com",
+      },
+      {
+        protocol: "https",
         hostname: "junziaatvwjikghyuffd.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
     ],
-  },
-
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "10mb",
-    },
   },
 };
 

@@ -40,4 +40,14 @@ export interface Article {
   views: number;
 
   read_time: number;
+
+  /* ==========================================================
+     SPONSORED ARTICLE
+  ========================================================== */
+
+  is_sponsored: boolean;
+
+  sponsor_name: string | null;
+
+  sponsor_url: string | null;
 }

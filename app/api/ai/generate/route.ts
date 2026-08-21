@@ -1,86 +1,127 @@
-import { NextResponse } from "next/server";
-import Groq from "groq-sdk";
+﻿import { NextResponse } from "next/server";
+import { groq } from "@/lib/ai/groq";
+
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 120);
+}
+
+function cleanJson(text: string) {
+  const cleaned = text
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+
+  if (
+    firstBrace === -1 ||
+    lastBrace === -1
+  ) {
+    throw new Error(
+      "AI did not return valid JSON."
+    );
+  }
+
+  return cleaned.substring(
+    firstBrace,
+    lastBrace + 1
+  );
+}
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.GROQ_API_KEY) {
+    const body = await req.json();
+
+    const title =
+      typeof body?.title === "string"
+        ? body.title.trim()
+        : "";
+
+    const content =
+      typeof body?.content === "string"
+        ? body.content.trim()
+        : "";
+
+    const category =
+      typeof body?.category === "string"
+        ? body.category.trim()
+        : "";
+
+    const location =
+      typeof body?.location === "string"
+        ? body.location.trim()
+        : "";
+
+    if (!content) {
       return NextResponse.json(
         {
           success: false,
-          error: "GROQ_API_KEY is not configured.",
+          error:
+            "Article content is required.",
         },
-        { status: 500 }
+        { status: 400 }
       );
     }
 
-    const groq = new Groq({
-      apiKey: process.env.GROQ_API_KEY,
-    });
-
-    const body = await req.json();
-
-    const {
-      title = "",
-      content = "",
-      category = "",
-      location = "",
-    } = body;
-
     const prompt = `
-You are the Chief Editor of NewsSphere, an international digital newspaper.
+You are the senior editor of NewsSphere.
 
-Your job is to rewrite the provided news into a COMPLETE, PROFESSIONAL, ORIGINAL newspaper article.
+Rewrite the supplied article into clear, professional,
+original news writing.
 
-IMPORTANT INSTRUCTIONS
+STRICT ACCURACY RULES:
 
-- Write between 1000 and 1500 words.
-- Write like Reuters, BBC, AP or The Hindu.
-- Never copy the original wording.
-- Rewrite everything naturally.
-- Use professional journalism.
-- Expand the story with useful background.
-- Explain what happened.
-- Explain why it happened.
-- Explain who is involved.
-- Explain the timeline.
-- Explain the impact.
-- Explain possible future developments.
+- Use ONLY information contained in the supplied article.
+- Do NOT invent facts.
+- Do NOT invent statistics.
+- Do NOT invent quotes.
+- Do NOT invent names.
+- Do NOT invent organizations.
+- Do NOT invent dates.
+- Do NOT invent locations.
+- Do NOT invent background information.
+- Do NOT add events that are not supplied.
+- Do NOT claim independent verification.
+- Do NOT pretend that you browsed the internet.
+- Do NOT add information merely to make the article longer.
+- Preserve the factual meaning of the source.
+- Remove repetition.
+- Improve clarity and grammar.
+- Use professional newspaper style.
 - Use short readable paragraphs.
-- Do NOT use markdown.
-- Do NOT use HTML.
-- Do NOT use bullet points.
-- Do NOT invent fake statistics.
-- Do NOT invent fake quotes.
-- If information is limited, naturally mention that authorities have not released further details.
-- The article should read like it was written by a human journalist.
+- Do not use markdown.
+- Do not use HTML.
+- Do not use bullet points inside the article.
 
-Generate:
+If the source is short, keep the rewritten article
+appropriately short.
 
-• Professional headline
-• Short summary (2-3 sentences)
-• Complete article
-• SEO title
-• SEO description (under 160 characters)
-• Category
-• 5-10 SEO tags
-• URL slug
-• Estimated read time
+Return ONLY valid JSON.
 
-RETURN ONLY VALID JSON.
+Required format:
 
 {
-  "title":"",
-  "summary":"",
-  "content":"",
-  "seoTitle":"",
-  "seoDescription":"",
-  "category":"",
-  "tags":[],
-  "slug":"",
-  "readTime":""
+  "title": "",
+  "summary": "",
+  "content": "",
+  "seoTitle": "",
+  "seoDescription": "",
+  "category": "",
+  "location": "",
+  "tags": [],
+  "slug": "",
+  "readTime": 0
 }
 
-ARTICLE TITLE:
+TITLE:
 ${title}
 
 CATEGORY:
@@ -89,87 +130,123 @@ ${category}
 LOCATION:
 ${location}
 
-ORIGINAL ARTICLE:
+SOURCE ARTICLE:
 ${content}
-
-Remember:
-
-Return ONLY JSON.
-
-No markdown.
-
-No explanations.
-
-No code fences.
-
-No extra text.
 `;
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.5,
-      max_tokens: 4096,
-      response_format: {
-        type: "json_object",
-      },
-      messages: [
-        {
-          role: "user",
-          content: prompt,
+    const completion =
+      await groq.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        temperature: 0.25,
+        max_tokens: 5000,
+
+        response_format: {
+          type: "json_object",
         },
-      ],
-    });
 
-    let text = completion.choices[0].message.content || "{}";
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a careful professional news editor. Accuracy is more important than length.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      });
 
-    text = text
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .trim();
+    const raw =
+      completion.choices[0]?.message
+        ?.content;
 
-    const firstBrace = text.indexOf("{");
-    const lastBrace = text.lastIndexOf("}");
-
-    if (firstBrace !== -1 && lastBrace !== -1) {
-      text = text.substring(firstBrace, lastBrace + 1);
+    if (!raw) {
+      throw new Error(
+        "Groq returned an empty response."
+      );
     }
 
-    let article = JSON.parse(text);
+    const article = JSON.parse(
+      cleanJson(raw)
+    );
 
-    article.title ||= title;
-    article.summary ||= "";
-    article.content ||= content;
-    article.category ||= category;
+    article.title = String(
+      article.title || title
+    ).trim();
 
-    article.tags ||= [];
+    article.summary = String(
+      article.summary || ""
+    ).trim();
 
-    article.slug ||=
-      article.title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+    article.content = String(
+      article.content || content
+    ).trim();
 
-    article.seoTitle ||= article.title;
+    article.category = String(
+      article.category || category || "India"
+    ).trim();
 
-    article.seoDescription ||=
-      article.summary.substring(0, 155);
+    article.location = String(
+      article.location || location || ""
+    ).trim();
 
-    if (!article.readTime) {
-      const words = article.content.split(/\s+/).length;
-      article.readTime = `${Math.max(
-        3,
-        Math.ceil(words / 220)
-      )} min read`;
-    }
+    article.seoTitle = String(
+      article.seoTitle ||
+        article.title ||
+        title
+    ).trim();
+
+    article.seoDescription = String(
+      article.seoDescription ||
+        article.summary ||
+        ""
+    )
+      .trim()
+      .slice(0, 155);
+
+    article.slug = slugify(
+      String(
+        article.slug ||
+          article.title ||
+          title
+      )
+    );
+
+    article.tags = Array.isArray(
+      article.tags
+    )
+      ? article.tags
+          .filter(
+            (tag: unknown) =>
+              typeof tag === "string"
+          )
+          .map((tag: string) =>
+            tag.trim()
+          )
+          .filter(Boolean)
+          .slice(0, 10)
+      : [];
+
+    const wordCount =
+      article.content
+        .split(/\s+/)
+        .filter(Boolean).length;
+
+    article.readTime = Math.max(
+      1,
+      Math.ceil(wordCount / 220)
+    );
 
     return NextResponse.json({
       success: true,
       article,
     });
-
   } catch (error) {
-    console.error("GROQ ERROR:", error);
+    console.error(
+      "GROQ REWRITE ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {
@@ -177,11 +254,9 @@ No extra text.
         error:
           error instanceof Error
             ? error.message
-            : "Unknown error",
+            : "Article rewrite failed.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

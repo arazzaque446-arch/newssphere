@@ -1,0 +1,26 @@
+{
+  "name": "NewsSphere — Truth. First.",
+  "short_name": "NewsSphere",
+  "description": "Breaking news, in-depth analysis, and trusted journalism from India and around the world.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ff9933",
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

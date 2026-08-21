@@ -4,10 +4,6 @@ import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-/* ==========================================================
-   Refresh Website
-========================================================== */
-
 function refreshPages() {
   revalidatePath("/");
   revalidatePath("/latest");
@@ -17,17 +13,51 @@ function refreshPages() {
   revalidatePath("/news");
 }
 
-/* ==========================================================
-   Generate SEO Slug
-========================================================== */
-
 function generateSlug(title: string) {
   return title
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+    .replace(/-+/g, "-")
+    .slice(0, 120);
+}
+
+function getSponsoredFields(formData: FormData) {
+  const isSponsored =
+    formData.get("isSponsored") === "on";
+
+  const sponsorName =
+    String(formData.get("sponsorName") || "").trim();
+
+  const sponsorUrl =
+    String(formData.get("sponsorUrl") || "").trim();
+
+  if (isSponsored && !sponsorName) {
+    throw new Error(
+      "Sponsor name is required for sponsored articles."
+    );
+  }
+
+  if (isSponsored && sponsorUrl) {
+    try {
+      new URL(sponsorUrl);
+    } catch {
+      throw new Error(
+        "Sponsor website must be a valid URL."
+      );
+    }
+  }
+
+  return {
+    is_sponsored: isSponsored,
+    sponsor_name: isSponsored
+      ? sponsorName || null
+      : null,
+    sponsor_url: isSponsored
+      ? sponsorUrl || null
+      : null,
+  };
 }
 
 /* ==========================================================
@@ -41,90 +71,113 @@ export async function createArticle(formData: FormData) {
     "https://images.unsplash.com/photo-1504711434969-e33886168f5c";
 
   if (image && image.size > 0) {
-    const extension = image.name.split(".").pop();
+    const extension =
+      image.name.split(".").pop() || "jpg";
 
-    const filename = `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2)}.${extension}`;
+    const filename =
+      `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}.${extension}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("news-images")
-      .upload(filename, image);
+    const { error: uploadError } =
+      await supabase.storage
+        .from("news-images")
+        .upload(filename, image);
 
     if (uploadError) {
       throw new Error(uploadError.message);
     }
 
-    const { data } = supabase.storage
-      .from("news-images")
-      .getPublicUrl(filename);
+    const { data } =
+      supabase.storage
+        .from("news-images")
+        .getPublicUrl(filename);
 
     imageUrl = data.publicUrl;
   }
 
-  const title = String(formData.get("title"));
+  const title =
+    String(formData.get("title") || "").trim();
 
-  const summary = String(formData.get("summary"));
+  const summary =
+    String(formData.get("summary") || "").trim();
+
+  const content =
+    String(formData.get("content") || "").trim();
 
   const slug = generateSlug(title);
+
+  const sponsored =
+    getSponsoredFields(formData);
 
   const article = {
     title,
     slug,
-
     summary,
+    content,
 
-    content: String(formData.get("content")),
+    category:
+      String(formData.get("category") || "").trim(),
 
-    category: String(formData.get("category")),
+    author:
+      String(formData.get("author") || "").trim(),
 
-    author: String(formData.get("author")),
-
-    location: String(formData.get("location")),
+    location:
+      String(formData.get("location") || "").trim(),
 
     source: "NewsSphere",
 
     image_url: imageUrl,
 
-    featured: formData.get("featured") === "on",
+    featured:
+      formData.get("featured") === "on",
 
-    published: formData.get("published") === "on",
+    published:
+      formData.get("published") === "on",
 
-    breaking: formData.get("breaking") === "on",
+    breaking:
+      formData.get("breaking") === "on",
 
     views: 0,
 
     tags: String(formData.get("tags") || "")
-  .split(",")
-  .map((tag) => tag.trim())
-  .filter(Boolean),
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean),
 
     seo_title:
-  String(formData.get("seoTitle")) || title,
+      String(formData.get("seoTitle") || "").trim() ||
+      title,
 
-seo_description:
-  String(formData.get("seoDescription")) || summary,
+    seo_description:
+      String(
+        formData.get("seoDescription") || ""
+      ).trim() || summary.slice(0, 160),
 
     read_time: Math.max(
-  1,
-  Math.ceil(
-    String(formData.get("content"))
-      .replace(/<[^>]+>/g, "")
-      .split(/\s+/).length / 200
-  )
-),
+      1,
+      Math.ceil(
+        content
+          .replace(/<[^>]+>/g, "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .length / 200
+      )
+    ),
 
-published_at:
-  formData.get("publishAt")
-    ? new Date(
-        String(formData.get("publishAt"))
-      ).toISOString()
-    : new Date().toISOString(),
+    published_at: formData.get("publishAt")
+      ? new Date(
+          String(formData.get("publishAt"))
+        ).toISOString()
+      : new Date().toISOString(),
+
+    ...sponsored,
   };
 
-  const { error } = await supabase
-    .from("articles")
-    .insert(article);
+  const { error } =
+    await supabase
+      .from("articles")
+      .insert(article);
 
   if (error) {
     throw new Error(error.message);
@@ -143,34 +196,40 @@ export async function updateArticle(
   id: string,
   formData: FormData
 ) {
-  const { data: current } = await supabase
-    .from("articles")
-    .select("image_url")
-    .eq("id", id)
-    .single();
+  const { data: current } =
+    await supabase
+      .from("articles")
+      .select("image_url")
+      .eq("id", id)
+      .single();
 
   let imageUrl = current?.image_url;
 
-  const newImage = formData.get("image") as File;
+  const newImage =
+    formData.get("image") as File;
 
   if (newImage && newImage.size > 0) {
-    const extension = newImage.name.split(".").pop();
+    const extension =
+      newImage.name.split(".").pop() || "jpg";
 
-    const filename = `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2)}.${extension}`;
+    const filename =
+      `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}.${extension}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("news-images")
-      .upload(filename, newImage);
+    const { error: uploadError } =
+      await supabase.storage
+        .from("news-images")
+        .upload(filename, newImage);
 
     if (uploadError) {
       throw new Error(uploadError.message);
     }
 
-    const { data } = supabase.storage
-      .from("news-images")
-      .getPublicUrl(filename);
+    const { data } =
+      supabase.storage
+        .from("news-images")
+        .getPublicUrl(filename);
 
     imageUrl = data.publicUrl;
 
@@ -180,7 +239,8 @@ export async function updateArticle(
         "/storage/v1/object/public/news-images/"
       )
     ) {
-      const oldFile = current.image_url.split("/").pop();
+      const oldFile =
+        current.image_url.split("/").pop();
 
       if (oldFile) {
         await supabase.storage
@@ -190,61 +250,79 @@ export async function updateArticle(
     }
   }
 
-  const title = String(formData.get("title"));
+  const title =
+    String(formData.get("title") || "").trim();
 
-  const summary = String(formData.get("summary"));
+  const summary =
+    String(formData.get("summary") || "").trim();
 
-  const slug = generateSlug(title);
+  const content =
+    String(formData.get("content") || "").trim();
+
+  const sponsored =
+    getSponsoredFields(formData);
 
   const article = {
     title,
-    slug,
-
+    slug: generateSlug(title),
     summary,
+    content,
 
-    content: String(formData.get("content")),
+    category:
+      String(formData.get("category") || "").trim(),
 
-    category: String(formData.get("category")),
+    author:
+      String(formData.get("author") || "").trim(),
 
-    author: String(formData.get("author")),
-
-    location: String(formData.get("location")),
+    location:
+      String(formData.get("location") || "").trim(),
 
     image_url: imageUrl,
 
-    featured: formData.get("featured") === "on",
+    featured:
+      formData.get("featured") === "on",
 
-    published: formData.get("published") === "on",
+    published:
+      formData.get("published") === "on",
 
-    breaking: formData.get("breaking") === "on",
+    breaking:
+      formData.get("breaking") === "on",
 
     seo_title:
-  String(formData.get("seoTitle")) || title,
+      String(formData.get("seoTitle") || "").trim() ||
+      title,
 
-seo_description:
-  String(formData.get("seoDescription")) || summary,
+    seo_description:
+      String(
+        formData.get("seoDescription") || ""
+      ).trim() || summary.slice(0, 160),
 
-tags: String(formData.get("tags") || "")
-  .split(",")
-  .map((tag) => tag.trim())
-  .filter(Boolean),
+    tags: String(formData.get("tags") || "")
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean),
 
-read_time: Math.max(
-  1,
-  Math.ceil(
-    String(formData.get("content"))
-      .replace(/<[^>]+>/g, "")
-      .split(/\s+/).length / 200
-  )
-),
+    read_time: Math.max(
+      1,
+      Math.ceil(
+        content
+          .replace(/<[^>]+>/g, "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .length / 200
+      )
+    ),
 
     updated_at: new Date().toISOString(),
+
+    ...sponsored,
   };
 
-  const { error } = await supabase
-    .from("articles")
-    .update(article)
-    .eq("id", id);
+  const { error } =
+    await supabase
+      .from("articles")
+      .update(article)
+      .eq("id", id);
 
   if (error) {
     throw new Error(error.message);
@@ -260,11 +338,12 @@ read_time: Math.max(
 ========================================================== */
 
 export async function deleteArticle(id: string) {
-  const { data: article } = await supabase
-    .from("articles")
-    .select("image_url")
-    .eq("id", id)
-    .single();
+  const { data: article } =
+    await supabase
+      .from("articles")
+      .select("image_url")
+      .eq("id", id)
+      .single();
 
   if (
     article?.image_url &&
@@ -272,7 +351,8 @@ export async function deleteArticle(id: string) {
       "/storage/v1/object/public/news-images/"
     )
   ) {
-    const filename = article.image_url.split("/").pop();
+    const filename =
+      article.image_url.split("/").pop();
 
     if (filename) {
       await supabase.storage
@@ -281,10 +361,11 @@ export async function deleteArticle(id: string) {
     }
   }
 
-  const { error } = await supabase
-    .from("articles")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await supabase
+      .from("articles")
+      .delete()
+      .eq("id", id);
 
   if (error) {
     throw new Error(error.message);
@@ -301,12 +382,13 @@ export async function togglePublished(
   id: string,
   current: boolean
 ) {
-  const { error } = await supabase
-    .from("articles")
-    .update({
-      published: !current,
-    })
-    .eq("id", id);
+  const { error } =
+    await supabase
+      .from("articles")
+      .update({
+        published: !current,
+      })
+      .eq("id", id);
 
   if (error) {
     throw new Error(error.message);
@@ -323,12 +405,13 @@ export async function toggleFeatured(
   id: string,
   current: boolean
 ) {
-  const { error } = await supabase
-    .from("articles")
-    .update({
-      featured: !current,
-    })
-    .eq("id", id);
+  const { error } =
+    await supabase
+      .from("articles")
+      .update({
+        featured: !current,
+      })
+      .eq("id", id);
 
   if (error) {
     throw new Error(error.message);
