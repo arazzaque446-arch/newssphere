@@ -19,6 +19,23 @@ function cleanText(value: unknown): string {
   return String(value).trim();
 }
 
+// 1. NEW: URL Normalizer to strip tracking parameters
+function normalizeUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    // Strip common tracking tags that bypass duplicate checks
+    const paramsToRemove = [
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 
+      'at_medium', 'at_campaign', 'at_custom', 'at_pt'
+    ];
+    paramsToRemove.forEach(param => parsed.searchParams.delete(param));
+    return parsed.toString();
+  } catch (e) {
+    return url; 
+  }
+}
+
 function makeUniqueSlug(
   baseSlug: string,
   guid: string | null,
@@ -42,8 +59,7 @@ export async function saveArticles(articles: any[]) {
     const article = articles[index];
 
     try {
-      const title =
-        cleanText(article.title) || "NewsSphere News";
+      const title = cleanText(article.title) || "NewsSphere News";
 
       const summary =
         cleanText(article.summary) ||
@@ -56,17 +72,16 @@ export async function saveArticles(articles: any[]) {
         summary ||
         title;
 
-      const link =
-        cleanText(article.link) ||
-        cleanText(article.url) ||
-        null;
+      // 2. Apply URL Normalization
+      const rawLink = cleanText(article.link) || cleanText(article.url) || null;
+      const link = normalizeUrl(rawLink);
+      
+      const guid = cleanText(article.guid) || null;
 
-      const guid =
-        cleanText(article.guid) || null;
-
+      // 3. Look for the corrected imageUrl property passed from fetchFeeds
       const imageUrl =
-        cleanText(article.image) ||
         cleanText(article.imageUrl) ||
+        cleanText(article.image) ||
         "";
 
       const baseSlug =
@@ -82,39 +97,32 @@ export async function saveArticles(articles: any[]) {
       // --------------------------------------------
       // DUPLICATE CHECK
       // --------------------------------------------
-
       let existing = null;
 
-      // 1. GUID
       if (guid) {
         const { data } = await supabase
           .from("articles")
           .select("id")
           .eq("guid", guid)
           .maybeSingle();
-
         existing = data;
       }
 
-      // 2. LINK
       if (!existing && link) {
         const { data } = await supabase
           .from("articles")
           .select("id")
           .eq("link", link)
           .maybeSingle();
-
         existing = data;
       }
 
-      // 3. SLUG
       if (!existing) {
         const { data } = await supabase
           .from("articles")
           .select("id")
           .eq("slug", baseSlug)
           .maybeSingle();
-
         existing = data;
       }
 
@@ -126,7 +134,6 @@ export async function saveArticles(articles: any[]) {
       // --------------------------------------------
       // GENERATE UNIQUE SLUG
       // --------------------------------------------
-
       let slug = baseSlug;
 
       const { data: slugMatch } = await supabase
@@ -136,74 +143,33 @@ export async function saveArticles(articles: any[]) {
         .maybeSingle();
 
       if (slugMatch) {
-        slug = makeUniqueSlug(
-          baseSlug,
-          guid,
-          index
-        );
+        slug = makeUniqueSlug(baseSlug, guid, index);
       }
 
       // --------------------------------------------
       // FINAL ARTICLE
       // --------------------------------------------
-
       const formattedArticle = {
         guid,
         link,
-
         title,
-
         summary,
-
         content,
-
         image_url: imageUrl,
-
-        category:
-          cleanText(article.category) || "General",
-
-        location:
-          cleanText(article.location) ||
-          "Guwahati, Assam",
-
-        author:
-          cleanText(article.author) ||
-          "NewsSphere",
-
-        source:
-          cleanText(article.source) ||
-          "RSS",
-
+        category: cleanText(article.category) || "General",
+        location: cleanText(article.location) || "Guwahati, Assam",
+        author: cleanText(article.author) || "NewsSphere",
+        source: cleanText(article.source) || "RSS",
         published: true,
-
         featured: false,
-
         slug,
-
         seo_title: title,
-
-        seo_description:
-          summary ||
-          `${title} - Latest news and updates from NewsSphere.`,
-
-        tags:
-          Array.isArray(article.tags)
-            ? article.tags
-            : [],
-
+        seo_description: summary || `${title} - Latest news and updates from NewsSphere.`,
+        tags: Array.isArray(article.tags) ? article.tags : [],
         breaking: false,
-
         published_at: publishedAt,
-
-        read_time: Math.max(
-          1,
-          Math.ceil(content.length / 1000)
-        ),
+        read_time: Math.max(1, Math.ceil(content.length / 1000)),
       };
-
-      // --------------------------------------------
-      // INSERT
-      // --------------------------------------------
 
       const { data, error } = await supabase
         .from("articles")
@@ -212,44 +178,24 @@ export async function saveArticles(articles: any[]) {
         .single();
 
       if (error) {
-        // A duplicate slug can still theoretically happen
-        // because the database is the final authority.
         if (error.code === "23505") {
-          console.warn(
-            `Duplicate detected during insert: ${slug}`
-          );
-
           duplicates++;
           continue;
         }
-
-        console.error(
-          "Insert Error:",
-          error
-        );
-
+        console.error("Insert Error:", error);
         failed++;
         continue;
       }
 
       inserted.push(data);
     } catch (error) {
-      console.error(
-        "RSS article processing error:",
-        error
-      );
-
+      console.error("RSS article processing error:", error);
       failed++;
     }
   }
 
-  console.log(
-    `Imported: ${inserted.length} | Duplicates: ${duplicates} | Failed: ${failed}`
-  );
-
   return {
     inserted,
-
     stats: {
       imported: inserted.length,
       duplicates,
