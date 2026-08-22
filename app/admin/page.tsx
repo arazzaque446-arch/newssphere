@@ -8,7 +8,6 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 import DashboardStat from "@/components/dashboard/DashboardStat";
-import AnalyticsCards from "@/components/dashboard/AnalyticsCards";
 import QuickActions from "@/components/dashboard/QuickActions";
 
 export default async function AdminDashboard() {
@@ -48,18 +47,7 @@ export default async function AdminDashboard() {
     .slice(0, 5);
 
   return (
-    <div className="space-y-8">
-
-      <div>
-        <h1 className="text-4xl font-bold text-slate-900">
-          Dashboard
-        </h1>
-
-        <p className="mt-2 text-slate-500">
-          Welcome to NewsSphere CMS
-        </p>
-      </div>
-
+    <div className="space-y-8 p-6">
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <DashboardStat
           title="Articles"
@@ -89,12 +77,8 @@ export default async function AdminDashboard() {
         />
       </div>
 
-      <AnalyticsCards articles={articles} />
-
       <div className="grid gap-8 lg:grid-cols-3">
-
         <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm">
-
           <div className="border-b p-6">
             <h2 className="text-xl font-bold">
               Recent Articles
@@ -115,7 +99,6 @@ export default async function AdminDashboard() {
                   <h3 className="font-semibold">
                     {article.title}
                   </h3>
-
                   <p className="mt-1 text-sm text-slate-500">
                     {article.category}
                   </p>
@@ -136,7 +119,6 @@ export default async function AdminDashboard() {
         </div>
 
         <QuickActions />
-
       </div>
     </div>
   );
