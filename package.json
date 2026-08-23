@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "eslint",
-  "audit": "node scripts/audit.js"
-},
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "audit": "node scripts/audit.js"
+  },
   "dependencies": {
     "@google/genai": "^2.15.0",
+    "@next/third-parties": "^16.3.2",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.2",
     "@tiptap/extension-image": "^3.27.4",
