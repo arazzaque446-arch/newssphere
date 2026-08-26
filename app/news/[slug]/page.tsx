@@ -109,12 +109,6 @@ export default async function NewsPage({
 
   const currentViews = article.views ?? 0;
 
-  /*
-   * Increment view count.
-   *
-   * This is intentionally done after
-   * successfully finding a published article.
-   */
   await supabase
     .from("articles")
     .update({
@@ -128,44 +122,29 @@ export default async function NewsPage({
     "";
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen bg-slate-100 pb-20">
       {/* JSON-LD */}
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "NewsArticle",
-
             headline: article.title,
-
             description,
-
-            image: article.image_url
-              ? [article.image_url]
-              : [],
-
+            image: article.image_url ? [article.image_url] : [],
             datePublished:
-              article.published_at ||
-              article.created_at,
-
+              article.published_at || article.created_at,
             dateModified:
-              article.updated_at ||
-              article.created_at,
-
+              article.updated_at || article.created_at,
             author: {
               "@type": "Organization",
-              name:
-                article.author ||
-                "NewsSphere",
+              name: article.author || "NewsSphere",
             },
-
             publisher: {
               "@type": "Organization",
               name: "NewsSphere",
             },
-
             mainEntityOfPage: {
               "@type": "WebPage",
               "@id": `https://newssphere-beta.vercel.app/news/${article.slug}`,
@@ -174,113 +153,106 @@ export default async function NewsPage({
         }}
       />
 
-      {/* Hero */}
-      <div className="relative min-h-[460px] w-full bg-slate-900 flex flex-col justify-end pt-24 pb-24">
+      {/* Hero Header Section */}
+      <div className="relative w-full bg-slate-900 py-16 md:py-24">
         {article.image_url ? (
           <Image
             src={article.image_url}
             alt={article.title}
             fill
             priority
-            className="object-cover"
+            className="object-cover opacity-30"
             sizes="100vw"
           />
         ) : null}
 
-        <div className="absolute inset-0 bg-black/65" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/80 to-transparent" />
 
         <div className="relative z-10 mx-auto w-full max-w-5xl px-6">
-          <span className="inline-block rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white">
+          <span className="inline-block rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow">
             {article.category || "General"}
           </span>
 
-          <h1 className="mt-4 text-3xl font-bold leading-tight text-white md:text-5xl">
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-white md:text-5xl font-serif">
             {article.title}
           </h1>
 
           {description && (
-            <p className="mt-3 max-w-4xl text-base text-slate-200 leading-relaxed md:text-lg">
+            <p className="mt-4 max-w-4xl text-base text-slate-200 leading-relaxed md:text-xl">
               {description}
             </p>
           )}
         </div>
       </div>
 
-      {/* Article Content Card */}
-      <div className="relative z-10 mx-auto -mt-12 max-w-5xl rounded-3xl bg-white p-6 shadow-xl md:p-10">
-        
-        {/* SPONSORED DISCLOSURE BANNER */}
-        {article.is_sponsored && (
-          <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
-            <h3 className="mb-1 text-sm font-bold uppercase tracking-wider text-amber-800">
-              Sponsored Content
-            </h3>
-            <p className="text-base">
-              This article is presented in partnership with{" "}
-              {article.sponsor_url ? (
-                <a
-                  href={article.sponsor_url}
-                  target="_blank"
-                  rel="noopener sponsored"
-                  className="font-semibold text-amber-700 underline transition hover:text-amber-900"
-                >
-                  {article.sponsor_name || "our sponsor"}
-                </a>
-              ) : (
-                <span className="font-semibold">
-                  {article.sponsor_name || "our sponsor"}
-                </span>
-              )}
-              .
-            </p>
-          </div>
-        )}
-
-        <div className="mb-8 flex flex-wrap gap-6 border-b border-slate-200 pb-6 text-sm text-slate-600">
-          <span>
-            👤 {article.author || "NewsSphere"}
-          </span>
-
-          <span>
-            📍 {article.location || "World"}
-          </span>
-
-          <span>
-            👁️ {currentViews + 1} Views
-          </span>
-
-          <span>
-            📅{" "}
-            {new Date(
-              article.published_at || article.created_at
-            ).toLocaleDateString()}
-          </span>
-        </div>
-
-        <article
-          className="prose prose-lg max-w-none text-slate-800 leading-relaxed"
-          dangerouslySetInnerHTML={{
-            __html:
-              article.content ||
-              "<p>No content available.</p>",
-          }}
-        />
-
-        {Array.isArray(article.tags) &&
-          article.tags.length > 0 && (
-            <div className="mt-10 flex flex-wrap gap-2 border-t border-slate-200 pt-6">
-              {article.tags.map(
-                (tag: string) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600"
+      {/* Main Article Content Container */}
+      <div className="relative z-10 mx-auto max-w-5xl px-4 md:px-0">
+        <div className="mt-8 rounded-3xl bg-white p-6 shadow-xl md:p-10 border border-slate-200/70">
+          
+          {/* SPONSORED DISCLOSURE BANNER */}
+          {article.is_sponsored && (
+            <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
+              <h3 className="mb-1 text-sm font-bold uppercase tracking-wider text-amber-800">
+                Sponsored Content
+              </h3>
+              <p className="text-base">
+                This article is presented in partnership with{" "}
+                {article.sponsor_url ? (
+                  <a
+                    href={article.sponsor_url}
+                    target="_blank"
+                    rel="noopener sponsored"
+                    className="font-semibold text-amber-700 underline transition hover:text-amber-900"
                   >
-                    #{tag}
+                    {article.sponsor_name || "our sponsor"}
+                  </a>
+                ) : (
+                  <span className="font-semibold">
+                    {article.sponsor_name || "our sponsor"}
                   </span>
-                )
-              )}
+                )}
+                .
+              </p>
             </div>
           )}
+
+          {/* Metadata Row */}
+          <div className="mb-8 flex flex-wrap gap-6 border-b border-slate-200 pb-6 text-sm text-slate-600">
+            <span>👤 {article.author || "NewsSphere"}</span>
+            <span>📍 {article.location || "World"}</span>
+            <span>👁️ {currentViews + 1} Views</span>
+            <span>
+              📅{" "}
+              {new Date(
+                article.published_at || article.created_at
+              ).toLocaleDateString()}
+            </span>
+          </div>
+
+          {/* Article Body */}
+          <article
+            className="prose prose-lg max-w-none text-slate-800 leading-relaxed"
+            dangerouslySetInnerHTML={{
+              __html:
+                article.content ||
+                "<p>No content available.</p>",
+            }}
+          />
+
+          {/* Tags */}
+          {Array.isArray(article.tags) && article.tags.length > 0 && (
+            <div className="mt-10 flex flex-wrap gap-2 border-t border-slate-200 pt-6">
+              {article.tags.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
