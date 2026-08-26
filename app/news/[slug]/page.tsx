@@ -175,8 +175,7 @@ export default async function NewsPage({
       />
 
       {/* Hero */}
-
-      <div className="relative h-[420px] w-full bg-slate-900">
+      <div className="relative min-h-[460px] w-full bg-slate-900 flex flex-col justify-end pt-24 pb-24">
         {article.image_url ? (
           <Image
             src={article.image_url}
@@ -188,29 +187,27 @@ export default async function NewsPage({
           />
         ) : null}
 
-        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-black/65" />
 
-        <div className="absolute bottom-10 left-1/2 w-full max-w-6xl -translate-x-1/2 px-6">
-          <span className="inline-block rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white">
-            {article.category ||
-              "General"}
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-6">
+          <span className="inline-block rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white">
+            {article.category || "General"}
           </span>
 
-          <h1 className="mt-5 text-4xl font-bold leading-tight text-white md:text-5xl">
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-white md:text-5xl">
             {article.title}
           </h1>
 
           {description && (
-            <p className="mt-4 max-w-4xl text-lg text-slate-200 md:text-xl">
+            <p className="mt-3 max-w-4xl text-base text-slate-200 leading-relaxed md:text-lg">
               {description}
             </p>
           )}
         </div>
       </div>
 
-      {/* Article */}
-
-      <div className="relative z-10 mx-auto -mt-16 max-w-5xl rounded-3xl bg-white p-6 shadow-xl md:p-10">
+      {/* Article Content Card */}
+      <div className="relative z-10 mx-auto -mt-12 max-w-5xl rounded-3xl bg-white p-6 shadow-xl md:p-10">
         
         {/* SPONSORED DISCLOSURE BANNER */}
         {article.is_sponsored && (
@@ -241,15 +238,11 @@ export default async function NewsPage({
 
         <div className="mb-8 flex flex-wrap gap-6 border-b border-slate-200 pb-6 text-sm text-slate-600">
           <span>
-            👤{" "}
-            {article.author ||
-              "NewsSphere"}
+            👤 {article.author || "NewsSphere"}
           </span>
 
           <span>
-            📍{" "}
-            {article.location ||
-              "World"}
+            📍 {article.location || "World"}
           </span>
 
           <span>
@@ -259,14 +252,13 @@ export default async function NewsPage({
           <span>
             📅{" "}
             {new Date(
-              article.published_at ||
-                article.created_at
+              article.published_at || article.created_at
             ).toLocaleDateString()}
           </span>
         </div>
 
         <article
-          className="prose prose-lg max-w-none"
+          className="prose prose-lg max-w-none text-slate-800 leading-relaxed"
           dangerouslySetInnerHTML={{
             __html:
               article.content ||
